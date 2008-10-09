@@ -26,6 +26,7 @@ namespace Winterdom.BizTalk.CryptoPipeline {
       IComponentUI {
       private string _ssoConfigApp;
       private Algorithm _algorithm;
+      private AlgorithmKey _algorithmKey;
       private Guid _guid;
 
       #region Public Properties
@@ -49,6 +50,12 @@ namespace Winterdom.BizTalk.CryptoPipeline {
       public Algorithm Algorithm {
          get { return _algorithm; }
          set { _algorithm = value; }
+      }
+
+      [Browsable(false)]
+      public AlgorithmKey AlgorithmKey {
+         get { return _algorithmKey; }
+         set { _algorithmKey = value; }
       }
 
       #endregion // Public Properties
@@ -199,7 +206,7 @@ namespace Winterdom.BizTalk.CryptoPipeline {
       /// the processing of the message in this pipeline component.
       /// </remarks>
       public IBaseMessage Execute(IPipelineContext pc, IBaseMessage inmsg) {
-         AlgorithmKey key = GetAlgorithmKey();
+         AlgorithmKey key = AlgorithmKey ?? GetAlgorithmKey();
          Stream cryptoStream = CreateCryptoStream(inmsg.BodyPart.Data, key);
          inmsg.BodyPart.Data = cryptoStream;
          return inmsg;
