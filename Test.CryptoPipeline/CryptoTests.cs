@@ -53,6 +53,7 @@ namespace Test.CryptoPipeline {
          IBaseMessage input = 
             MessageHelper.CreateFromStream(CreateEncryptedFile());
          MessageCollection output = pipeline.Execute(input);
+
          Assert.AreEqual(1, output.Count);
          Assert.Greater(DataPartStreamSize(output[0]), 0);
       }
@@ -87,10 +88,12 @@ namespace Test.CryptoPipeline {
       }
       private String PlainTextContent() {
          StringBuilder text = new StringBuilder("<msg>");
-         for ( int i = 0; i < 100; i++ ) {
-            text.Append("abcdefghijklmnopqrstuvwxyz")
+         for ( int i = 0; i < 10000; i++ ) {
+            text.Append("<entry>")
+                .Append("abcdefghijklmnopqrstuvwxyz")
                 .Append("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
-                .Append("0123456789");
+                .Append("0123456789")
+                .Append("</entry>");
          }
          text.Append("</msg>");
          return text.ToString();

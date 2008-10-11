@@ -70,7 +70,6 @@ namespace Winterdom.BizTalk.CryptoPipeline {
          // at runtime. So we decrypt into an in-memory buffer
          // and then give BizTalk that instead.
          //
-         //return new CryptoStream(stream, transform, CryptoStreamMode.Read);
 
          Stream cryptoStream = new CryptoStream(stream, transform, CryptoStreamMode.Read);
          MemoryStream memStream = new MemoryStream();
