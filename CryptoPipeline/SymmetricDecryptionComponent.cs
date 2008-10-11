@@ -72,15 +72,17 @@ namespace Winterdom.BizTalk.CryptoPipeline {
          //
 
          Stream cryptoStream = new CryptoStream(stream, transform, CryptoStreamMode.Read);
-         MemoryStream memStream = new MemoryStream();
-         byte[] buffer = new byte[1024 * 64];
-         int bytes = 0;
-         do {
-            bytes = cryptoStream.Read(buffer, 0, buffer.Length);
-            memStream.Write(buffer, 0, bytes);
-         } while ( bytes > 0 );
-         memStream.Position = 0;
-         return memStream;
+         using ( cryptoStream ) {
+            MemoryStream memStream = new MemoryStream();
+            byte[] buffer = new byte[1024 * 64];
+            int bytes = 0;
+            do {
+               bytes = cryptoStream.Read(buffer, 0, buffer.Length);
+               memStream.Write(buffer, 0, bytes);
+            } while ( bytes > 0 );
+            memStream.Position = 0;
+            return memStream;
+         }
       }
       #endregion // Overrides
 

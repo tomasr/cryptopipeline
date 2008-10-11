@@ -208,6 +208,9 @@ namespace Winterdom.BizTalk.CryptoPipeline {
       public IBaseMessage Execute(IPipelineContext pc, IBaseMessage inmsg) {
          AlgorithmKey key = AlgorithmKey ?? GetAlgorithmKey();
          Stream cryptoStream = CreateCryptoStream(inmsg.BodyPart.Data, key);
+         
+         pc.ResourceTracker.AddResource(cryptoStream);
+         
          inmsg.BodyPart.Data = cryptoStream;
          return inmsg;
       }
