@@ -12,11 +12,12 @@ using Winterdom.BizTalk.PipelineTesting.Simple;
 
 namespace Test.CryptoPipeline {
    [TestFixture]
-   public class EncryptionTests {
+   public class CryptoTests {
       static byte[] KEY;
       static byte[] IV;
 
-      static EncryptionTests() {
+      [TestFixtureSetUp]
+      public void FixtureSetUp() {
          TripleDES des = TripleDES.Create();
          des.GenerateIV();
          des.GenerateKey();
@@ -39,6 +40,38 @@ namespace Test.CryptoPipeline {
          Assert.Greater(DataPartStreamSize(output), 0);
       }
 
+      [Test]
+      public void CanDecryptMessage() {
+         SymmetricDecryptionComponent crypto = 
+            new SymmetricDecryptionComponent();
+         crypto.Algorithm = Algorithm.TripleDES;
+         crypto.AlgorithmKey = new AlgorithmKey(KEY, IV);
+
+         ReceivePipelineWrapper pipeline = Pipelines.Receive()
+            .WithDecoder(crypto)
+            .WithDisassembler(Disassembler.Xml().AllowUnrecognized(true));
+         IBaseMessage input = 
+            MessageHelper.CreateFromStream(CreateEncryptedFile());
+         MessageCollection output = pipeline.Execute(input);
+         Assert.AreEqual(1, output.Count);
+         Assert.Greater(DataPartStreamSize(output[0]), 0);
+      }
+
+      private Stream CreateEncryptedFile() {
+         String filename = Path.GetTempFileName();
+         TripleDES des = TripleDES.Create();
+         des.IV = IV;
+         des.Key = KEY;
+         ICryptoTransform trans = des.CreateEncryptor();
+         CryptoStream stream = new CryptoStream(
+            File.OpenWrite(filename), trans, CryptoStreamMode.Write
+            );
+         using ( StreamWriter writer = new StreamWriter(stream) ) {
+            writer.Write(PlainTextContent());
+         }
+         return File.OpenRead(filename);
+      }
+
       private long DataPartStreamSize(IBaseMessage msg) {
          using ( Stream stream = msg.BodyPart.Data ) {
             byte[] buffer = new byte[4096];
@@ -50,13 +83,17 @@ namespace Test.CryptoPipeline {
          }
       }
       private IBaseMessage PlainTextMessage() {
-         StringBuilder text = new StringBuilder();
+         return MessageHelper.CreateFromString(PlainTextContent());
+      }
+      private String PlainTextContent() {
+         StringBuilder text = new StringBuilder("<msg>");
          for ( int i = 0; i < 100; i++ ) {
             text.Append("abcdefghijklmnopqrstuvwxyz")
                 .Append("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
                 .Append("0123456789");
          }
-         return MessageHelper.CreateFromString(text.ToString());
+         text.Append("</msg>");
+         return text.ToString();
       }
    }
 }
